@@ -5,6 +5,7 @@ echo "WordPress Install Script"
 echo "============================================"
 
 # Gathering database login credentials from user input
+read -sp "Your mysql root username: " sqluser
 read -sp "Your mysql root password: " rootpasswd
 echo
 read -p "Database Name: " dbname
@@ -16,14 +17,14 @@ echo
 # Create new database using provided credentials
 read -p "Create new database with provided credentials? (y/n): " new_db
 echo "Creating new MySQL database..."
-mysql -uroot -p${rootpasswd} -e "CREATE DATABASE ${dbname} /*\!40100 DEFAULT CHARACTER SET utf8 */;"
+mysql -u${sqluser} -p${rootpasswd} -e "CREATE DATABASE ${dbname} /*\!40100 DEFAULT CHARACTER SET utf8 */;"
 echo "Creating new user..."
-mysql -uroot -p${rootpasswd} -e "CREATE USER ${dbuser}@localhost IDENTIFIED BY '${dbpass}';"
+mysql -u${sqluser} -p${rootpasswd} -e "CREATE USER ${dbuser}@localhost IDENTIFIED BY '${dbpass}';"
 echo "User successfully created!"
 echo ""
 echo "Granting ALL privileges on ${dbname} to ${dbuser}!"
-mysql -uroot -p${rootpasswd} -e "GRANT ALL ON ${dbname}.* TO '${dbuser}'@'localhost';"
-mysql -uroot -p${rootpasswd} -e "FLUSH PRIVILEGES;"
+mysql -u${sqluser} -p${rootpasswd} -e "GRANT ALL ON ${dbname}.* TO '${dbuser}'@'localhost';"
+mysql -u${sqluser} -p${rootpasswd} -e "FLUSH PRIVILEGES;"
 echo "MySQL DB / User creation completed!"
 
 clear
@@ -68,20 +69,11 @@ if [ "$install_method" == 1 ]; then
 	echo
 	read -p "Install wordpress in a new directory (y/n): " new
 
-
-	read -p "Install wordpress in a new directory (y/n):  - new question " new;do
-#
-        if [ "$new" == y ] ; then
-                echo "she said yes"
-		break
-               read -p "Name of the wordpress directory: " dir_name
-               mkdir -p /var/www/$dir_name
-               cd /var/www/$dir_name
-        elif [ "$new" == n ]; then
-		echo "she said no"
-		break
-fi
-done
+	if [ "$new" == y ] ; then
+		read -p "Name of the wordpress directory: " dir_name
+		mkdir -p /var/www/$dir_name
+		cd /var/www/$dir_name
+	fi
 
 	# Download the latest wordpress package using wp-cli
 	wp core download --allow-root
@@ -152,27 +144,28 @@ else
 	# remove zip file
 	rm latest.tar.gz
 
-
-## for some reason this does not show at the end
 	clear
 	
-	cat << EOF
- 	============================================
-	Installation is complete.
-	============================================
-	MYSQL db/user creation completed!
-	Database  : ${dbname}
-	User      : ${dbuser}
-	Pass      : ${dbpass}
-	============================================
-	"Wordpress install completed!
-	Domain  	: ${url}
-	Email  	: ${admin_email}
-	User      : ${admin_name}
-	Pass      : ${admin_pass}
-	============================================
-	
-EOF
+	echo "========================="
+	echo "Installation is complete."
+	echo "========================="
 
+	echo "============================================"
+	echo "MYSQL db/user creation completed!"
+	echo " >> Database  : ${dbname}"
+	echo " >> User      : ${dbuser}"
+	echo " >> Pass      : ${dbpass}"
+	echo "============================================"
+
+	echo
+
+	echo "============================================"
+	echo "Wordpress install completed!"
+	echo " >> Domain  	: ${url}"
+	echo " >> Email  	: ${admin_email}"
+	echo " >> User      : ${admin_name}"
+	echo " >> Pass      : ${admin_pass}"
+	echo "============================================"
+
+echo
 fi
-done
